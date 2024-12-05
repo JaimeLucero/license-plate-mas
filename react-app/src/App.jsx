@@ -1,13 +1,16 @@
 // App.js
 import React from 'react';
-import './index.css';
+import './App.css';
+import logo from './assets/usep-logo.png';
+import cameraFeed from './assets/camera-feed.png';
+import plateImage from './assets/plate-image.png';
 
 const App = () => {
   return (
     <div className="app-container">
       <header className="header">
         <div className="header-logo">
-          <img src="/university-logo.png" alt="University Logo" className="logo" />
+          <img src={logo} alt="University Logo" className="logo" />
           <h1>University of Southeastern Philippines</h1>
           <h2>Automatic Plate Number Recognition</h2>
         </div>
@@ -16,7 +19,7 @@ const App = () => {
       <main className="main-content">
         <div className="camera-view">
           <img
-            src="/camera-feed.png"
+            src={cameraFeed}
             alt="Camera Feed"
             className="camera-image"
           />
@@ -25,7 +28,7 @@ const App = () => {
         <div className="details">
           <div className="plate-image">
             <img
-              src="/plate-image.png"
+              src={plateImage}
               alt="License Plate"
               className="plate-photo"
             />
