@@ -1,13 +1,13 @@
-// App.js
 import React from 'react';
 import './App.css';
-import logo from './assets/usep-logo.png';
+import logo from './assets/university-logo.png';
 import cameraFeed from './assets/camera-feed.png';
 import plateImage from './assets/plate-image.png';
 
 const App = () => {
   return (
     <div className="app-container">
+      {/* Header Section */}
       <header className="header">
         <div className="header-logo">
           <img src={logo} alt="University Logo" className="logo" />
@@ -16,24 +16,21 @@ const App = () => {
         </div>
       </header>
 
+      {/* Main Content */}
       <main className="main-content">
+        {/* Camera Feed Section */}
         <div className="camera-view">
-          <img
-            src={cameraFeed}
-            alt="Camera Feed"
-            className="camera-image"
-          />
+          <img src={cameraFeed} alt="Camera Feed" className="camera-image" />
         </div>
 
+        {/* Plate Details Section */}
         <div className="details">
+          {/* Plate Image */}
           <div className="plate-image">
-            <img
-              src={plateImage}
-              alt="License Plate"
-              className="plate-photo"
-            />
+            <img src={plateImage} alt="License Plate" className="plate-photo" />
           </div>
 
+          {/* Information Section */}
           <div className="info">
             <p><strong>Plate Number:</strong> TIT 127</p>
             <p><strong>Date:</strong> 11/29/2024</p>
@@ -41,6 +38,7 @@ const App = () => {
           </div>
         </div>
 
+        {/* History Section */}
         <div className="history">
           <h3>History</h3>
           <table>
