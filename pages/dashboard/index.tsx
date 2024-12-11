@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useRef, useEffect, useState} from 'react';
 
 const Dashboard: React.FC = () => {
   // Inline styles
@@ -67,6 +67,18 @@ const Dashboard: React.FC = () => {
     height: '350px',
     position: 'relative',
   };
+  
+  const timeOverlayStyle: React.CSSProperties = {
+    position: 'absolute',
+    top: '10px',
+    right: '10px',
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    color: 'white',
+    padding: '5px 10px',
+    borderRadius: '5px',
+    fontSize: '14px',
+    fontFamily: 'monospace',
+  };
 
   const licensePlateContainerStyle: React.CSSProperties = {
     width: '50%',
@@ -124,6 +136,52 @@ const Dashboard: React.FC = () => {
     { plateNumber: 'LMN 456', date: '11/27/2024', time: '11:00 AM' },
   ];
 
+  //State for live video stream
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [streamingError, setStreamingError] = useState<string | null>(null);
+  const [currentDateTime, setCurrentDateTime] = useState<string>("");
+
+  useEffect(() => {
+    const startVideoStream = async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: false,
+        });
+
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
+      } catch (error) {
+        console.error('Error accessing the camera:', error);
+        setStreamingError('Unable to access camera. Please check permissions.');
+      }
+    };
+
+    startVideoStream();
+
+    return () => {
+      if (videoRef.current && videoRef.current.srcObject) {
+        const tracks = (videoRef.current.srcObject as MediaStream).getTracks();
+        tracks.forEach((track) => track.stop());
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    const updateDateTime = () => {
+      const now = new Date();
+      setCurrentDateTime(
+        `${now.toLocaleDateString()} ${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`
+      );
+    };
+
+    const timer = setInterval(updateDateTime, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+
   return (
     <div style={containerStyle}>
       {/* Header */}
@@ -144,17 +202,18 @@ const Dashboard: React.FC = () => {
       <div style={contentStyle}>
         {/* Live Footage */}
         <div style={videoContainerStyle}>
-          <video
-            width="100%"
-            height="100%"
-            controls
-            autoPlay
-            loop
-            style={{ objectFit: 'cover' }}
-          >
-            <source src="your-video-source-url.mp4" type="video/mp4" />
-            Your browser does not support the video tag.
-          </video>
+          {streamingError ? (
+            <p style={{ color: 'white', textAlign: 'center' }}>{streamingError}</p>
+          ) : (
+            <video
+              ref={videoRef}
+              autoPlay
+              muted
+              playsInline
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            />
+          )}
+          <div style={timeOverlayStyle}>{currentDateTime}</div>
         </div>
 
         {/* License Plate Capture */}
