@@ -501,17 +501,39 @@ const Dashboard: React.FC = () => {
       console.log('License Plate Saved:', response.data);
       setSaveMessage(response.data.message);
     } catch (error) {
-      console.error('Error saving license plate:', error);
+      if (error.response) {
+        // Handle 400 Bad Request error
+        if (error.response.status === 400) {
+          console.error('Bad Request - Invalid Data:', error.response.data);
+          setSaveMessage('Bad Request: Invalid data. Please check your input.');
+        } if (error.response.status === 409) {
+          console.error('Bad Request - Data exists:', error.response.data);
+          setSaveMessage('Bad Request: Data already exists.');
+        } else {
+          // Handle other errors (e.g., 500 Server error, etc.)
+          console.error('Error:', error.response.data);
+          setSaveMessage('An error occurred while saving the license plate.');
+        }
+      } else if (error.request) {
+        // Handle no response from the server
+        console.error('No response received:', error.request);
+        setSaveMessage('No response from the server. Please try again later.');
+      } else {
+        // Handle errors in setting up the request
+        console.error('Error in setting up request:', error.message);
+        setSaveMessage('An error occurred while setting up the request.');
+      }
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     // Logic to save the license plate information (e.g., sending to an API, saving to local storage)
     console.log('License Number:', licenseNumber);
     console.log('Date:', date);
     console.log('Time:', time);
     console.log('Image', plateImageBlob)
-    saveLicensePlate(licenseNumber, date, time, plateImageBlob);
+    await saveLicensePlate(licenseNumber, date, time, plateImageBlob);
+    fetchHistory();  // Re-fetch the history after saving new data
   };
 
   const handleReset = () => {
@@ -523,25 +545,20 @@ const Dashboard: React.FC = () => {
   };
 
   // Fetch license plate history from API
-  useEffect(() => {
-    const fetchHistory = async () => {
-      try {
-        const response = await axios.get('http://127.0.0.1:5000/license-plates');
-        console.log(response.data)
-        setHistoryData(response.data);  // Set the fetched data to state
-        setLoading(false);  // Set loading to false after data is fetched
-      } catch (err) {
-        setError('Failed to fetch license plate history');  // Handle errors
-        setLoading(false);  // Set loading to false in case of error
-      }
-    };
+  const fetchHistory = async () => {
+    try {
+      const response = await axios.get('http://127.0.0.1:5000/license-plates');
+      setHistoryData(response.data);  // Set the fetched data to state
+      setLoading(false);  // Set loading to false after data is fetched
+    } catch (err) {
+      setError('Failed to fetch license plate history');  // Set error message
+      setLoading(false);  // Set loading to false in case of error
+    }
+  };
 
+  useEffect(() => {
     fetchHistory();  // Call the fetch function on component mount
   }, []);  // Empty dependency array ensures this runs once after the component mounts
-
-  if (loading) {
-    return <div>Loading...</div>;  // Show loading message or spinner
-  }
 
 
   return (
@@ -649,15 +666,31 @@ const Dashboard: React.FC = () => {
               <th style={historyTableHeaderStyle}>Plate Number</th>
             </tr>
           </thead>
-          <tbody>
-            {historyData.map((entry, index) => (
-              <tr key={index} style={historyTableRowStyle}>
-                <td style={historyTableDataStyle}>{entry.date}</td>
-                <td style={historyTableDataStyle}>{entry.time}</td>
-                <td style={historyTableDataStyle}>{entry.license_number}</td> {/* Assuming 'license_number' field from the response */}
-              </tr>
-            ))}
-          </tbody>
+          {
+            loading ? (
+              <tbody>
+                <tr>
+                  <td colSpan={3} style={historyTableDataStyle}>Loading...</td> {/* Show Loading... when loading is true */}
+                </tr>
+              </tbody>
+            ) : error ? (
+              <tbody>
+                <tr>
+                  <td colSpan={3} style={historyTableDataStyle}>Error: {error}</td> {/* Show error if there's one */}
+                </tr>
+              </tbody>
+            ) : (
+              <tbody>
+                {historyData.map((entry, index) => (
+                  <tr key={index} style={historyTableRowStyle}>
+                    <td style={historyTableDataStyle}>{entry.date}</td>
+                    <td style={historyTableDataStyle}>{entry.time}</td>
+                    <td style={historyTableDataStyle}>{entry.license_number}</td> {/* Assuming 'license_number' field from the response */}
+                  </tr>
+                ))}
+              </tbody>
+            )
+          }
         </table>
       </div>
     </div>
